@@ -5,8 +5,10 @@ The print: https://www.etsy.com/au/listing/846098762/physics-wall-art-youngs-dou
 
 ## Drawsvg version
 
-Activate the virtual environment:
+Create a virtual environment of your choice (or not) and install the `drawsvg/dependencies.txt`
+
+Generate the poster:
 
 ```
-source drawsvg/venv/bin/activate
+python drawsvg/main.py
 ```
