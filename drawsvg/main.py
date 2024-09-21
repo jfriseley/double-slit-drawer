@@ -14,9 +14,10 @@ SLIT_HEIGHT = 0.7
 DISTANCE_FROM_CENTRE_TO_SLIT = 0.2
 
 # Distance between wavefronts as a fraction of the image height
-WAVEFRONT_SPACING_HEIGHT = 0.05
+WAVEFRONT_SPACING_HEIGHT = 0.0595
 
 GRATING_COLOUR = "black"
+WAVEFRONT_COLOUR = "black"
 BACKGROUND_COLOUR = "white"
 
 GRATING_WIDTH = 10
@@ -35,9 +36,6 @@ class NormalisedPoint:
         return floor(IMG_WIDTH * self.u)
 
 
-centreLeftSlit = NormalisedPoint(3, 4)
-
-
 def rasterise_height(normalisedHeight):
     return floor(IMG_HEIGHT * normalisedHeight)
 
@@ -48,11 +46,10 @@ def rasterise_width(normalisedWidth):
 
 if __name__ == "__main__":
 
-    # Get a vector drawing with origin in bottom left
+    # Get a vector drawing with origin in top left
     d = draw.Drawing(IMG_WIDTH, IMG_HEIGHT, origin=(0, 0))
 
     # Draw the background
-    # TODO
     d.append(draw.Rectangle(0, 0, IMG_WIDTH, IMG_HEIGHT, fill=BACKGROUND_COLOUR))
 
     # Compute the grating width as a normalised coordinate (as it is parameterised
@@ -111,23 +108,38 @@ if __name__ == "__main__":
         wavefrontLeftPoint = NormalisedPoint(0, currentHeight)
         wavefrontRightPoint = NormalisedPoint(1, currentHeight)
         wavefront = draw.Line(
-        wavefrontLeftPoint.rasterise_width(IMG_WIDTH),
-        wavefrontLeftPoint.rasterise_height(IMG_HEIGHT),
-        wavefrontRightPoint.rasterise_width(IMG_WIDTH),
-        wavefrontRightPoint.rasterise_height(IMG_HEIGHT),
-        stroke=GRATING_COLOUR,
-        stroke_width=WAVEFRONT_WIDTH,
+            wavefrontLeftPoint.rasterise_width(IMG_WIDTH),
+            wavefrontLeftPoint.rasterise_height(IMG_HEIGHT),
+            wavefrontRightPoint.rasterise_width(IMG_WIDTH),
+            wavefrontRightPoint.rasterise_height(IMG_HEIGHT),
+            stroke=GRATING_COLOUR,
+            stroke_width=WAVEFRONT_WIDTH,
         )
         d.append(wavefront)
         currentHeight += WAVEFRONT_SPACING_HEIGHT
 
-    # Get the point that the refraction gratings are centred on,
-    # with the origin in the centre of the image
-    # Normalised coordinates
+    # Draw circles centred on the slits
+    for slitCentre_u in [
+        0.5 - DISTANCE_FROM_CENTRE_TO_SLIT,
+        0.5 + DISTANCE_FROM_CENTRE_TO_SLIT,
+    ]:
+        slitCentre = NormalisedPoint(slitCentre_u, SLIT_HEIGHT)
+        # Convert wavefront spacing to raster
+        wavefrontSpacingRaster = floor(IMG_HEIGHT * WAVEFRONT_SPACING_HEIGHT)
+        # How many circles do we have to draw to fill the page?
+        for i in range(100):
 
-    # leftGratingNormalised = NormalisedPoint(0.5-DISTANCE_FROM_CENTRE_TO_SLIT, HEIGHT_BEHIND_SLIT)
-
-    # Draw a circle centred on the left grating
-    # TODO
+            d.append(
+                draw.ArcLine(
+                    slitCentre.rasterise_width(IMG_WIDTH),
+                    slitCentre.rasterise_height(IMG_HEIGHT),
+                    i * wavefrontSpacingRaster,
+                    0,
+                    180,
+                    stroke=WAVEFRONT_COLOUR,
+                    stroke_width=WAVEFRONT_WIDTH,
+                    fill_opacity=0,
+                )
+            )
 
     d.save_png("double-slit.png")
