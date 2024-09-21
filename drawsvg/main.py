@@ -20,6 +20,7 @@ GRATING_COLOUR = "black"
 BACKGROUND_COLOUR = "white"
 
 GRATING_WIDTH = 10
+WAVEFRONT_WIDTH = 1
 
 
 @dataclass
@@ -105,7 +106,20 @@ if __name__ == "__main__":
     d.append(rightGrating)
 
     # Draw the wavefronts behind the grating
-    # TODO
+    currentHeight = SLIT_HEIGHT + WAVEFRONT_SPACING_HEIGHT
+    while currentHeight < 1.0:
+        wavefrontLeftPoint = NormalisedPoint(0, currentHeight)
+        wavefrontRightPoint = NormalisedPoint(1, currentHeight)
+        wavefront = draw.Line(
+        wavefrontLeftPoint.rasterise_width(IMG_WIDTH),
+        wavefrontLeftPoint.rasterise_height(IMG_HEIGHT),
+        wavefrontRightPoint.rasterise_width(IMG_WIDTH),
+        wavefrontRightPoint.rasterise_height(IMG_HEIGHT),
+        stroke=GRATING_COLOUR,
+        stroke_width=WAVEFRONT_WIDTH,
+        )
+        d.append(wavefront)
+        currentHeight += WAVEFRONT_SPACING_HEIGHT
 
     # Get the point that the refraction gratings are centred on,
     # with the origin in the centre of the image
