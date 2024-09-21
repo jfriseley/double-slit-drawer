@@ -9,21 +9,18 @@ IMG_HEIGHT = 600
 # Measured as a normalised coordinate from top left corner
 SLIT_HEIGHT = 0.7
 
-
-
 # Distance between wavefronts as a fraction of the image height
-
 WAVEFRONT_SPACING_WIDTH = 0.05
 
 # How many wavefronts from the centre of the image to the centre of a slit
-WAVEFRONTS_FROM_CENTER_TO_SLIT : int= 5
+WAVEFRONTS_FROM_CENTER_TO_SLIT: int = 5
 
 
-GRATING_COLOUR ='white'
-WAVEFRONT_COLOUR = 'white'
-BACKGROUND_COLOUR = 'blue'
+GRATING_COLOUR = "white"
+WAVEFRONT_COLOUR = "white"
+BACKGROUND_COLOUR = "blue"
 
-GRATING_WIDTH = 10
+GRATING_STROKE_WIDTH = 10
 WAVEFRONT_WIDTH = 1
 
 
@@ -63,7 +60,7 @@ if __name__ == "__main__":
     # We want the length of the centre grating to be a multiple of wavefront spacing width
     # TODO
     # Gap between gratings needs to be 2*WAVEFRONT_SPACING_WIDTH
-    distanceFromCentreToSlit = WAVEFRONTS_FROM_CENTER_TO_SLIT*WAVEFRONT_SPACING_WIDTH
+    distanceFromCentreToSlit = WAVEFRONTS_FROM_CENTER_TO_SLIT * WAVEFRONT_SPACING_WIDTH
 
     # Draw the wavefronts behind the grating
     currentHeight = SLIT_HEIGHT + WAVEFRONT_SPACING_WIDTH
@@ -107,7 +104,7 @@ if __name__ == "__main__":
     # Draw the grating
     leftGratingLeftPoint = NormalisedPoint(0, SLIT_HEIGHT)
     leftGratingRightPoint = NormalisedPoint(
-        0.5 - distanceFromCentreToSlit - WAVEFRONT_SPACING_WIDTH/2,
+        0.5 - distanceFromCentreToSlit - WAVEFRONT_SPACING_WIDTH / 2,
         SLIT_HEIGHT,
     )
     leftGrating = draw.Line(
@@ -116,15 +113,15 @@ if __name__ == "__main__":
         leftGratingRightPoint.rasterise_width(IMG_WIDTH),
         leftGratingRightPoint.rasterise_height(IMG_HEIGHT),
         stroke=GRATING_COLOUR,
-        stroke_width=GRATING_WIDTH,
+        stroke_width=GRATING_STROKE_WIDTH,
     )
     d.append(leftGrating)
 
     centreGratingLeftPoint = NormalisedPoint(
-        0.5 - distanceFromCentreToSlit + WAVEFRONT_SPACING_WIDTH/2, SLIT_HEIGHT
+        0.5 - distanceFromCentreToSlit + WAVEFRONT_SPACING_WIDTH / 2, SLIT_HEIGHT
     )
     centreGratingRightPoint = NormalisedPoint(
-        0.5 + distanceFromCentreToSlit - WAVEFRONT_SPACING_WIDTH/2, SLIT_HEIGHT
+        0.5 + distanceFromCentreToSlit - WAVEFRONT_SPACING_WIDTH / 2, SLIT_HEIGHT
     )
     centreGrating = draw.Line(
         centreGratingLeftPoint.rasterise_width(IMG_WIDTH),
@@ -132,12 +129,12 @@ if __name__ == "__main__":
         centreGratingRightPoint.rasterise_width(IMG_WIDTH),
         centreGratingRightPoint.rasterise_height(IMG_HEIGHT),
         stroke=GRATING_COLOUR,
-        stroke_width=GRATING_WIDTH,
+        stroke_width=GRATING_STROKE_WIDTH,
     )
     d.append(centreGrating)
 
     rightGratingLeftPoint = NormalisedPoint(
-        0.5 + distanceFromCentreToSlit + WAVEFRONT_SPACING_WIDTH/2, SLIT_HEIGHT
+        0.5 + distanceFromCentreToSlit + WAVEFRONT_SPACING_WIDTH / 2, SLIT_HEIGHT
     )
     rightGratingRightPoint = NormalisedPoint(1, SLIT_HEIGHT)
     rightGrating = draw.Line(
@@ -146,7 +143,7 @@ if __name__ == "__main__":
         rightGratingRightPoint.rasterise_width(IMG_WIDTH),
         rightGratingRightPoint.rasterise_height(IMG_HEIGHT),
         stroke=GRATING_COLOUR,
-        stroke_width=GRATING_WIDTH,
+        stroke_width=GRATING_STROKE_WIDTH,
     )
     d.append(rightGrating)
 
