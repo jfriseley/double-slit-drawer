@@ -63,7 +63,7 @@ if __name__=="__main__":
 
     # Plot the electric field using quiver
     plt.figure(figsize=(6, 6))
-    plt.quiver(X, Y, Ex, Ey, color='blue', scale=1000)
+    plt.streamplot(X, Y, Ex, Ey, color='blue')
     plt.title("Electric Field Lines")
     plt.xlabel('X')
     plt.ylabel('Y')
