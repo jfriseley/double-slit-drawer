@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import drawsvg as draw
-from math import floor
+from math import floor, comb
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from scipy.interpolate import splrep, splev
 
 import numpy as np 
 
@@ -105,6 +106,7 @@ def add_point_charge(X, Y, q, pos):
 
 
 
+
 if __name__=="__main__":
 
 
@@ -155,7 +157,7 @@ if __name__=="__main__":
                     step = len(accumulated_points) / float(num_downsampled_points)
                     downsampled_points = [accumulated_points[int(i * step)] for i in range(num_downsampled_points)]
 
-                # move to the first point
+                #move to the first point
                 x,y = downsampled_points[0]
                 u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
                 p.M(u,v)
@@ -165,9 +167,16 @@ if __name__=="__main__":
                     u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
                     x_,y_ = downsampled_points[i + 1]
                     u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
-
+                    x__,y__ = downsampled_points[i + 2]
+                    u__,v__ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
+                    
                     #d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
-                    p.Q(u,v, u_, v_)
+                    p.C(u,v, u_, v_, u__,v__)
+                    #p.M(u,v)
+
+
+
+
                 d.append(p)
 
     for charge in charges:
