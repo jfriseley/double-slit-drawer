@@ -7,7 +7,62 @@ import numpy as np
 
 
 k_e = 8.99e9  # Coulomb constant in N·m²/C²
+STEP_SIZE = 0.01
+THRESHOLD = 1e-5
+XRANGE = (-5, 5)
+YRANGE = (-5, 5)
+WIDTH = 1000 
+HEIGHT = 1000
 
+def in_range(x, y, x_range, y_range):
+    x_min = x_range[0]
+    x_max = x_range[1]
+    y_min = y_range[0]
+    y_max = y_range[1]
+    if x_min <= x <= x_max and y_min <= y <= y_max:
+        return True
+    return False
+
+def map_to_image_coords(x, y, xrange, yrange, width, height):
+    xmin = xrange[0]
+    xmax = xrange[1]
+    ymin = yrange[0]
+    ymax = yrange[1]
+
+    u = floor((x - xmin)/(xmax - xmin)*width) 
+    v = floor((y - ymin)/(ymax - ymin)*height)
+    return u,v
+
+
+def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, step_size=STEP_SIZE, threshold=THRESHOLD):
+    
+    x_pos, y_pos = start_point
+    points = []
+
+    try:
+        while True:
+            # Get the nearest grid indices
+            x_index = np.clip(np.searchsorted(x, x_pos), 0, width - 1)
+            y_index = np.clip(np.searchsorted(y, y_pos), 0, height - 1)
+
+            # Get the electric field at the current position
+            Ex_value = Ex[y_index, x_index]
+            Ey_value = Ey[y_index, x_index]
+            E_magnitude = np.sqrt(Ex_value**2 + Ey_value**2)
+
+            # Check if the electric field is negligible or we are out of bounds
+            if (E_magnitude < threshold) or E_magnitude==np.inf or not in_range(x_pos, y_pos, XRANGE, YRANGE):
+                break
+
+            # Store the current point in grid coordinates
+            points.append((x_pos, y_pos))
+
+            # Update position using Euler's method
+            x_pos += Ex_value * step_size
+            y_pos += Ey_value * step_size
+    except Exception as e:
+        print(e)
+    return points
 
 def add_point_charge(X, Y, q, pos):
     """
@@ -38,21 +93,22 @@ def add_point_charge(X, Y, q, pos):
     return Ex, Ey
 
 
+def draw_electric_field_line(start, end, color='blue'):
+    mid_point = ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2 + 0.5)  # Adjust height for curve
+    path = f'M {start[0] * 50 + 200} {start[1] * 50 + 200} C {mid_point[0] * 50 + 200} {mid_point[1] * 50 + 200} {end[0] * 50 + 200} {end[1] * 50 + 200}'
+    d.append(draw.Path(path, fill='none', stroke=color, stroke_width=2))
+
 if __name__=="__main__":
 
 
 
-    grid_size = 100
-    x = np.linspace(-5, 5, grid_size)
-    y = np.linspace(-5, 5, grid_size)
-    X, Y = np.meshgrid(x, y)
+    x_vector = np.linspace(XRANGE[0], XRANGE[1], WIDTH)
+    y_vector = np.linspace(YRANGE[0], YRANGE[1], HEIGHT)
+    X, Y = np.meshgrid(x_vector, y_vector)
 
-    # Initialize electric field components (Ex and Ey)
-    Ex = np.zeros((grid_size, grid_size))
-    Ey = np.zeros((grid_size, grid_size))
+    Ex = np.zeros((HEIGHT, WIDTH))
+    Ey = np.zeros((HEIGHT, WIDTH))
 
-
-    # Add a few example charges
     Ex1, Ey1 = add_point_charge(X, Y, 1e-9, (1, 0))  # Positive charge at (1, 0)
     Ex += Ex1 
     Ey += Ey1
@@ -61,7 +117,30 @@ if __name__=="__main__":
     Ex += Ex2 
     Ey += Ey2
 
-    # Plot the electric field using quiver
+
+    d = draw.Drawing(WIDTH, HEIGHT)
+
+    num_points = 100
+    x_min, x_max = XRANGE 
+    y_min, y_max = YRANGE 
+    initial_points = np.column_stack((
+        np.random.uniform(x_min, x_max, num_points),
+        np.random.uniform(y_min, y_max, num_points)
+    ))
+
+    for initial_point in initial_points: 
+        accumulated_points = follow_field_lines(initial_point, Ex, Ey, x_vector, y_vector)
+        for i in range(len(accumulated_points) - 1):
+            x,y = accumulated_points[i]
+            u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
+            x_,y_ = accumulated_points[i + 1]
+            u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
+
+            print(f"{u},{v}")
+            d.append(draw.Line(u, v, u_, v_, stroke='blue', stroke_width=2))
+
+    d.save_svg('electric-field-lines.svg')
+
     plt.figure(figsize=(6, 6))
     plt.streamplot(X, Y, Ex, Ey, color='blue')
     plt.title("Electric Field Lines")
