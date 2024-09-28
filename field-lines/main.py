@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import drawsvg as draw
 from math import floor
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 import numpy as np 
 
@@ -13,6 +14,7 @@ XRANGE = (-5, 5)
 YRANGE = (-5, 5)
 WIDTH = 1000 
 HEIGHT = 1000
+E_MAX=150
 
 def in_range(x, y, x_range, y_range):
     x_min = x_range[0]
@@ -31,6 +33,8 @@ def map_to_image_coords(x, y, xrange, yrange, width, height):
 
     u = floor((x - xmin)/(xmax - xmin)*width) 
     v = floor((y - ymin)/(ymax - ymin)*height)
+    u = min(max(u, 0), width-1)
+    v = min(max(v, 0), height-1)
     return u,v
 
 
@@ -51,7 +55,7 @@ def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, st
             E_magnitude = np.sqrt(Ex_value**2 + Ey_value**2)
 
             # Check if the electric field is negligible or we are out of bounds
-            if (E_magnitude < threshold) or E_magnitude==np.inf or not in_range(x_pos, y_pos, XRANGE, YRANGE):
+            if (E_magnitude < threshold) or E_magnitude>E_MAX or not in_range(x_pos, y_pos, XRANGE, YRANGE):
                 break
 
             # Store the current point in grid coordinates
@@ -120,7 +124,7 @@ if __name__=="__main__":
 
     d = draw.Drawing(WIDTH, HEIGHT)
 
-    num_points = 100
+    num_points = 1000
     x_min, x_max = XRANGE 
     y_min, y_max = YRANGE 
     initial_points = np.column_stack((
@@ -128,7 +132,7 @@ if __name__=="__main__":
         np.random.uniform(y_min, y_max, num_points)
     ))
 
-    for initial_point in initial_points: 
+    for initial_point in tqdm(initial_points, desc="Processing Points"): 
         accumulated_points = follow_field_lines(initial_point, Ex, Ey, x_vector, y_vector)
         for i in range(len(accumulated_points) - 1):
             x,y = accumulated_points[i]
@@ -136,7 +140,6 @@ if __name__=="__main__":
             x_,y_ = accumulated_points[i + 1]
             u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
 
-            print(f"{u},{v}")
             d.append(draw.Line(u, v, u_, v_, stroke='blue', stroke_width=2))
 
     d.save_svg('electric-field-lines.svg')
