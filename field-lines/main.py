@@ -10,6 +10,7 @@ import numpy as np
 
 k_e = 8.99e9  # Coulomb constant in N·m²/C²
 STEP_SIZE = 0.01
+NUM_LINES =100
 THRESHOLD = 1e-5
 XRANGE = (-5, 5)
 YRANGE = (-5, 5)
@@ -133,12 +134,12 @@ if __name__=="__main__":
     d = draw.Drawing(WIDTH, HEIGHT)
     d.append(draw.Rectangle(0, 0, WIDTH, HEIGHT, fill=BACKGROUND_COLOUR))
 
-    num_points = 10
+    
     x_min, x_max = XRANGE 
     y_min, y_max = YRANGE 
     initial_points = np.column_stack((
-        np.random.uniform(x_min, x_max, num_points),
-        np.random.uniform(y_min, y_max, num_points)
+        np.random.uniform(x_min, x_max, NUM_LINES),
+        np.random.uniform(y_min, y_max, NUM_LINES)
     ))
 
     for initial_point in tqdm(initial_points, desc="Processing Points"): 
@@ -148,7 +149,7 @@ if __name__=="__main__":
 
             if not len(accumulated_points)==0:
                 # Get a path object 
-                p = draw.Path(stroke='black', fill='none', stroke_width=3)
+                p = draw.Path(stroke=LINE_COLOUR, fill='none', stroke_width=3)
                 # Downsample points 
                 num_downsampled_points = 20
                 if len(accumulated_points) <= num_downsampled_points:
@@ -162,6 +163,7 @@ if __name__=="__main__":
                 u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
                 p.M(u,v)
 
+
                 for i in range(1, len(downsampled_points) - 2, 3):
                     x,y = downsampled_points[i]
                     u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
@@ -169,11 +171,8 @@ if __name__=="__main__":
                     u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
                     x__,y__ = downsampled_points[i + 2]
                     u__,v__ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
-                    
-                    #d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
-                    p.Q(u,v, u_, v_)
-                    p.T(u__,v__)
-                    #p.M(u,v)
+                
+                    p.C(u,v, u__, v__, u_, v_)
 
 
 
