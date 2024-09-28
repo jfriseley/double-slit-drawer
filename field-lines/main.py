@@ -14,7 +14,7 @@ XRANGE = (-5, 5)
 YRANGE = (-5, 5)
 WIDTH = 1000 
 HEIGHT = 1000
-E_MAX=100
+
 LINE_COLOUR='white'
 BACKGROUND_COLOUR = "pink"
 RADIUS=40
@@ -42,10 +42,9 @@ def map_to_image_coords(x, y, xrange, yrange, width, height):
 
 
 def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, step_size=STEP_SIZE, threshold=THRESHOLD, forwards=True):
-    
-
     x_pos, y_pos = start_point
     points = []
+    upper_bound=1e-4*np.max(np.sqrt(Ex**2 + Ey**2))
 
     try:
         while True:
@@ -59,7 +58,7 @@ def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, st
             E_magnitude = np.sqrt(Ex_value**2 + Ey_value**2)
 
             # Check if the electric field is negligible or we are out of bounds
-            if (E_magnitude < threshold) or E_magnitude>E_MAX or not in_range(x_pos, y_pos, XRANGE, YRANGE):
+            if E_magnitude>upper_bound or not in_range(x_pos, y_pos, XRANGE, YRANGE):
                 break
 
             # Store the current point in grid coordinates
@@ -93,7 +92,7 @@ def add_point_charge(X, Y, q, pos):
     r = np.sqrt(dx**2 + dy**2)  # Radial distance
     
     # Avoid division by zero at the location of the charge
-    r[r == 0] = np.inf
+    #r[r == 0] = np.inf
     
     # Coulomb's law: E = k_e * q / r^2
     E = k_e * q / r**2
@@ -105,10 +104,6 @@ def add_point_charge(X, Y, q, pos):
     return Ex, Ey
 
 
-def draw_electric_field_line(start, end, color='blue'):
-    mid_point = ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2 + 0.5)  # Adjust height for curve
-    path = f'M {start[0] * 50 + 200} {start[1] * 50 + 200} C {mid_point[0] * 50 + 200} {mid_point[1] * 50 + 200} {end[0] * 50 + 200} {end[1] * 50 + 200}'
-    d.append(draw.Path(path, fill='none', stroke=color, stroke_width=2))
 
 if __name__=="__main__":
 
@@ -162,7 +157,7 @@ if __name__=="__main__":
         # Map the position to image coordinates
         u, v = map_to_image_coords(pos[0], pos[1], XRANGE, YRANGE, WIDTH, HEIGHT)
         
-        d.append(draw.Circle(u, v, r=RADIUS, fill=BACKGROUND_COLOUR, opacity=1))  # r is the radius
+        #d.append(draw.Circle(u, v, r=RADIUS, fill=BACKGROUND_COLOUR, opacity=1))  # r is the radius
 
 
 
@@ -173,5 +168,11 @@ if __name__=="__main__":
     plt.title("Electric Field Lines")
     plt.xlabel('X')
     plt.ylabel('Y')
-
     plt.savefig('electric_field.png')
+
+    E_magnitude = np.sqrt(Ex**2 + Ey**2)
+    E_normalized = E_magnitude / np.max(E_magnitude)
+    E_corrected = np.power(E_normalized, 0.2) * np.max(E_normalized)
+    plt.imshow(E_corrected) 
+
+    plt.savefig("field_strength.png")
