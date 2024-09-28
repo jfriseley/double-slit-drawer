@@ -133,7 +133,7 @@ if __name__=="__main__":
     d = draw.Drawing(WIDTH, HEIGHT)
     d.append(draw.Rectangle(0, 0, WIDTH, HEIGHT, fill=BACKGROUND_COLOUR))
 
-    num_points = 100
+    num_points = 10
     x_min, x_max = XRANGE 
     y_min, y_max = YRANGE 
     initial_points = np.column_stack((
@@ -150,7 +150,7 @@ if __name__=="__main__":
                 # Get a path object 
                 p = draw.Path(stroke='black', fill='none', stroke_width=3)
                 # Downsample points 
-                num_downsampled_points = 10
+                num_downsampled_points = 20
                 if len(accumulated_points) <= num_downsampled_points:
                     downsampled_points = accumulated_points
                 else: 
@@ -162,7 +162,7 @@ if __name__=="__main__":
                 u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
                 p.M(u,v)
 
-                for i in range(1, len(downsampled_points) - 2):
+                for i in range(1, len(downsampled_points) - 2, 3):
                     x,y = downsampled_points[i]
                     u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
                     x_,y_ = downsampled_points[i + 1]
@@ -171,7 +171,8 @@ if __name__=="__main__":
                     u__,v__ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
                     
                     #d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
-                    p.C(u,v, u_, v_, u__,v__)
+                    p.Q(u,v, u_, v_)
+                    p.T(u__,v__)
                     #p.M(u,v)
 
 
