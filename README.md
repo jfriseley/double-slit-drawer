@@ -7,8 +7,8 @@ The print: https://www.etsy.com/au/listing/846098762/physics-wall-art-youngs-dou
 
 Create a virtual environment of your choice (or not) and install the `drawsvg/dependencies.txt`
 
-Generate the poster:
+Generate the double slit poster:
 
 ```
-python drawsvg/main.py
+python double-slit/main.py
 ```
