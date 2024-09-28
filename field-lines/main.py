@@ -143,13 +143,32 @@ if __name__=="__main__":
         # Follow field lines forwards and backwards
         for forwards in [True, False]:
             accumulated_points = follow_field_lines(initial_point, Ex, Ey, x_vector, y_vector, forwards=forwards)
-            for i in range(len(accumulated_points) - 1):
-                x,y = accumulated_points[i]
-                u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
-                x_,y_ = accumulated_points[i + 1]
-                u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
 
-                d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
+            if not len(accumulated_points)==0:
+                # Get a path object 
+                p = draw.Path(stroke='black', fill='none', stroke_width=3)
+                # Downsample points 
+                num_downsampled_points = 10
+                if len(accumulated_points) <= num_downsampled_points:
+                    downsampled_points = accumulated_points
+                else: 
+                    step = len(accumulated_points) / float(num_downsampled_points)
+                    downsampled_points = [accumulated_points[int(i * step)] for i in range(num_downsampled_points)]
+
+                # move to the first point
+                x,y = downsampled_points[0]
+                u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
+                p.M(u,v)
+
+                for i in range(1, len(downsampled_points) - 2):
+                    x,y = downsampled_points[i]
+                    u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
+                    x_,y_ = downsampled_points[i + 1]
+                    u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
+
+                    #d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
+                    p.Q(u,v, u_, v_)
+                d.append(p)
 
     for charge in charges:
         pos = charge['position']
