@@ -14,7 +14,10 @@ XRANGE = (-5, 5)
 YRANGE = (-5, 5)
 WIDTH = 1000 
 HEIGHT = 1000
-E_MAX=150
+E_MAX=100
+LINE_COLOUR='white'
+BACKGROUND_COLOUR = "pink"
+RADIUS=40
 
 def in_range(x, y, x_range, y_range):
     x_min = x_range[0]
@@ -38,8 +41,9 @@ def map_to_image_coords(x, y, xrange, yrange, width, height):
     return u,v
 
 
-def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, step_size=STEP_SIZE, threshold=THRESHOLD):
+def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, step_size=STEP_SIZE, threshold=THRESHOLD, forwards=True):
     
+
     x_pos, y_pos = start_point
     points = []
 
@@ -62,8 +66,12 @@ def follow_field_lines(start_point, Ex, Ey, x, y, width=WIDTH, height=HEIGHT, st
             points.append((x_pos, y_pos))
 
             # Update position using Euler's method
-            x_pos += Ex_value * step_size
-            y_pos += Ey_value * step_size
+            if forwards:
+                direction = 1 
+            else: 
+                direction = -1
+            x_pos += direction*Ex_value * step_size
+            y_pos += direction*Ey_value * step_size
     except Exception as e:
         print(e)
     return points
@@ -113,18 +121,22 @@ if __name__=="__main__":
     Ex = np.zeros((HEIGHT, WIDTH))
     Ey = np.zeros((HEIGHT, WIDTH))
 
-    Ex1, Ey1 = add_point_charge(X, Y, 1e-9, (1, 0))  # Positive charge at (1, 0)
-    Ex += Ex1 
-    Ey += Ey1
+    charges = [
+        {'position': (1, 0), 'charge': 1e-9},  # Positive charge
+        {'position': (-1, 0), 'charge': -1e-9}  # Negative charge
+    ]
 
-    Ex2, Ey2 = add_point_charge(X, Y, -1e-9, (-1, 0))  # Negative charge at (-1, 0)
-    Ex += Ex2 
-    Ey += Ey2
+    for charge in charges:
+
+        Ex_c, Ey_c = add_point_charge(X, Y, charge['charge'], charge['position'])  # Positive charge at (1, 0)
+        Ex += Ex_c 
+        Ey += Ey_c
 
 
     d = draw.Drawing(WIDTH, HEIGHT)
+    d.append(draw.Rectangle(0, 0, WIDTH, HEIGHT, fill=BACKGROUND_COLOUR))
 
-    num_points = 1000
+    num_points = 100
     x_min, x_max = XRANGE 
     y_min, y_max = YRANGE 
     initial_points = np.column_stack((
@@ -133,14 +145,26 @@ if __name__=="__main__":
     ))
 
     for initial_point in tqdm(initial_points, desc="Processing Points"): 
-        accumulated_points = follow_field_lines(initial_point, Ex, Ey, x_vector, y_vector)
-        for i in range(len(accumulated_points) - 1):
-            x,y = accumulated_points[i]
-            u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
-            x_,y_ = accumulated_points[i + 1]
-            u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
+        # Follow field lines forwards and backwards
+        for forwards in [True, False]:
+            accumulated_points = follow_field_lines(initial_point, Ex, Ey, x_vector, y_vector, forwards=forwards)
+            for i in range(len(accumulated_points) - 1):
+                x,y = accumulated_points[i]
+                u,v = map_to_image_coords(x,y,XRANGE, YRANGE, WIDTH, HEIGHT)
+                x_,y_ = accumulated_points[i + 1]
+                u_,v_ = map_to_image_coords(x_,y_,XRANGE, YRANGE, WIDTH, HEIGHT)
 
-            d.append(draw.Line(u, v, u_, v_, stroke='blue', stroke_width=2))
+                d.append(draw.Line(u, v, u_, v_, stroke=LINE_COLOUR, stroke_width=2))
+
+    for charge in charges:
+        pos = charge['position']
+        
+        # Map the position to image coordinates
+        u, v = map_to_image_coords(pos[0], pos[1], XRANGE, YRANGE, WIDTH, HEIGHT)
+        
+        d.append(draw.Circle(u, v, r=RADIUS, fill=BACKGROUND_COLOUR, opacity=1))  # r is the radius
+
+
 
     d.save_svg('electric-field-lines.svg')
 
